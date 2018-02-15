@@ -38,7 +38,9 @@ type Server struct {
 
 var DialTLS = func(network, addr string, cfg *tls.Config) (net.Conn, error) {
 	dialer := &net.Dialer{
-		Timeout:   20 * time.Second,
+		//Connection timeout with certificate
+		Timeout: 20 * time.Second,
+		//Duration of activity after not using the connection
 		KeepAlive: 60 * time.Second,
 	}
 	return tls.DialWithDialer(dialer, network, addr, cfg)
@@ -59,6 +61,7 @@ func CreateServer(host, certificatestring string) *Server {
 	}
 
 	s.client = &http.Client{
+		//HTTP2 transport layer
 		Transport: &http2.Transport{
 			TLSClientConfig: tlsConfig,
 			DialTLS:         DialTLS,
@@ -88,8 +91,8 @@ func sendNotification(n Notification, s *Server, wg *sync.WaitGroup, deviceToken
 
 	if response != nil {
 		defer response.Body.Close() // close response body to reuse connection
-		fmt.Println(resp)
-		io.Copy(ioutil.Discard, resp.Body) // read entire body to reuse connection
+		fmt.Println(response)
+		io.Copy(ioutil.Discard, response.Body) // read entire body to reuse connection
 	}
 }
 
